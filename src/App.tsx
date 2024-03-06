@@ -1,11 +1,16 @@
 import React from 'react'
-import './App.css'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import Dashboard from './components/Dashboard'
+import LoginSignUp from './components/LoginSignUp'
 
 function App() {
   return (
-    <div className="App">
-      <h1 className="text-3xl font-bold underline">Hello world!</h1>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" index element={<LoginSignUp></LoginSignUp>} />
+        <Route path="/dashboard" element={<Dashboard></Dashboard>} />
+      </Routes>
+    </Router>
   )
 }
 
