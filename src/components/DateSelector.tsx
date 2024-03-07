@@ -47,10 +47,6 @@ const DateSelector = () => {
         {getDatesForMonth().map((day, index) => (
           <li key={index}>
             {day.date} - {day.day}
-            <div className="flex flex-row">
-              <div>Daily Task</div>
-              <div></div>
-            </div>
           </li>
         ))}
       </ul>

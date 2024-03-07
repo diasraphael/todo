@@ -7,6 +7,8 @@ interface InputProps {
   title: string
   placeholder: string
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  value: string
+  name: string
 }
 
 const Input = ({
@@ -15,7 +17,9 @@ const Input = ({
   altText,
   title,
   placeholder,
-  onChange
+  onChange,
+  value,
+  name
 }: InputProps) => {
   return (
     <div className="flex items-center m-auto w-96 h-20 bg-[#eaeaea] rounded-md">
@@ -26,6 +30,8 @@ const Input = ({
         title={title}
         placeholder={placeholder}
         onChange={onChange}
+        value={value}
+        name={name}
       />
     </div>
   )
