@@ -3,9 +3,10 @@ import Input from './common/Input'
 import Button from './common/Button'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
+import { ActionType } from './login/ActionType'
 
 const LoginSignUp = () => {
-  const [action, setAction] = useState('Login')
+  const [action, setAction] = useState('')
   const navigate = useNavigate()
   const [formData, setFormData] = useState({
     username: '',
@@ -47,8 +48,11 @@ const LoginSignUp = () => {
     <div className="m-12">
       <form className="flex flex-col m-auto mt-12 bg-white pb-7 w-[600px]">
         <div className="flex flex-col items-center gap-10 w-full mt-10">
-          <div className="text-5xl font-bold">Planner {action}</div>
+          <div className="text-5xl font-bold">Planner</div>
           <div className="border-b-4 w-40"></div>
+        </div>
+        <div className="mt-8 flex flex-col gap-6">
+          <ActionType action={action} setAction={setAction} />
         </div>
         <div className="mt-14 flex flex-col gap-6">
           {action === 'Login' ? (
