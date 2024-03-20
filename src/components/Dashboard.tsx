@@ -12,7 +12,7 @@ const Dashboard = () => {
       <h3 className="text-base mt-4">
         Here you have an overview of your tasks.
       </h3>
-      <DateSelector></DateSelector>
+      <DateSelector user={response}></DateSelector>
     </div>
   )
 }
