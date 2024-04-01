@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import Button from './common/Button'
+import Input from './common/Input'
 
 const Day: { [key: number]: string } = {
   0: 'S',
@@ -19,17 +20,17 @@ type User = {
 }
 type Task = {
   userId: number
-  tasks: string[]
+  title: string
 }
 interface DateSelectorProps {
   user: User
 }
 
-const DateSelector = ({ id }: DateSelectorProps) => {
+const DateSelector = ({ user: { id } }: DateSelectorProps) => {
   const [selectedDate, setSelectedDate] = useState(new Date())
-  const [tasks, setTasks] = useState<{ [key: string]: string; userId: number }>(
-    {}
-  )
+  const [newTaskName, setNewTaskName] = useState('')
+  const [isAddingTask, setIsAddingTask] = useState(false)
+  const [tasks, setTasks] = useState<Task[]>([])
   const handleDateChange = (date: Date) => {
     setSelectedDate(date)
   }
@@ -56,7 +57,11 @@ const DateSelector = ({ id }: DateSelectorProps) => {
   }
   const dataList = getDatesForWeek()
   console.log('data list is', dataList)
-  const handleAddTask = () => {}
+  const handleAddTask = () => {
+    const newTask: Task = { title: newTaskName, userId: id } // Replace 'New Task' with the actual task title
+    setTasks((prevTasks) => [...prevTasks, newTask])
+    setNewTaskName('')
+  }
 
   return (
     <div>
@@ -81,13 +86,44 @@ const DateSelector = ({ id }: DateSelectorProps) => {
           ))}
         </thead>
         <tbody>
-          <tr></tr>
-          <tr></tr>
+          {tasks.map((task, index) => (
+            <tr key={index}>
+              <td>{task.title}</td>
+            </tr>
+          ))}
+          <tr className="">
+            <td>
+              {isAddingTask ? (
+                <>
+                  <Input
+                    img="/assets/username.png"
+                    altText="Add Task"
+                    title="Task title"
+                    name="title"
+                    placeholder="Enter Task Name"
+                    type="text"
+                    value={newTaskName}
+                    onChange={(e) => setNewTaskName(e.target.value)}
+                  />
+                  <Button
+                    className="bg-[#e8f5fd]"
+                    type="button"
+                    onClick={handleAddTask}>
+                    Save Task
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  className="bg-[#e8f5fd]"
+                  type="button"
+                  onClick={() => setIsAddingTask(true)}>
+                  Add Task
+                </Button>
+              )}
+            </td>
+          </tr>
         </tbody>
       </table>
-      <Button className="" type="button" onClick={handleAddTask}>
-        Add Task
-      </Button>
     </div>
   )
 }
