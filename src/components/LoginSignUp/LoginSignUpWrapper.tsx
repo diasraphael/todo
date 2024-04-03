@@ -42,9 +42,9 @@ export const LoginSignUpWrapper = () => {
 
   return (
     <div className="m-12">
-      <form className="flex flex-col m-auto mt-12 bg-white pb-7 w-[600px]">
+      <form className="flex flex-col m-auto mt-12 bg-black pb-7 w-[600px]">
         <div className="flex flex-col items-center gap-10 w-full mt-10">
-          <div className="text-5xl font-bold">Planner {action}</div>
+          <div className="text-5xl font-bold text-white">Planner {action}</div>
           <div className="border-b-4 w-40"></div>
         </div>
         <ActionType action={action} setAction={setAction}></ActionType>
