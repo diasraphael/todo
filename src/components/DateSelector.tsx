@@ -14,10 +14,14 @@ const Day: { [key: number]: string } = {
   5: 'F',
   6: 'S'
 }
+type UserTask = {
+  title: string
+}
 type User = {
-  user_id: number
+  id: number
   username: string
   email: string
+  tasks: UserTask[]
 }
 type Task = {
   userId: number
@@ -32,17 +36,17 @@ enum Period {
   month = 30
 }
 
-const DateSelector = ({ user: { user_id } }: DateSelectorProps) => {
+const DateSelector = ({ user: { id, tasks } }: DateSelectorProps) => {
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [newTaskName, setNewTaskName] = useState<string>('')
   const [isAddingTask, setIsAddingTask] = useState(false)
-  const [tasks, setTasks] = useState<Task[]>([])
+  const [userTasks, setUserTasks] = useState<Task[]>([])
   const [error, setError] = useState('')
   const handleDateChange = (date: Date) => {
     setSelectedDate(date)
   }
   const period = Period.week
-  console.log('the date and user', selectedDate, user_id)
+  console.log('the date and user', selectedDate, id)
 
   const getDatesForWeek = () => {
     const currentDate = new Date()
@@ -93,7 +97,7 @@ const DateSelector = ({ user: { user_id } }: DateSelectorProps) => {
     if (newTaskName) {
       const newTask: Task = {
         title: newTaskName,
-        userId: user_id,
+        userId: id,
         status: false
       }
       const response = await saveTask(newTask)
