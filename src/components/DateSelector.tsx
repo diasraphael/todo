@@ -16,6 +16,7 @@ const Day: { [key: number]: string } = {
 }
 type UserTask = {
   title: string
+  id: number
 }
 type User = {
   id: number
@@ -35,12 +36,20 @@ enum Period {
   week = 7,
   month = 30
 }
+type ExtendedTask = Task & { taskId: number }
 
 const DateSelector = ({ user: { id, tasks } }: DateSelectorProps) => {
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [newTaskName, setNewTaskName] = useState<string>('')
   const [isAddingTask, setIsAddingTask] = useState(false)
-  const [userTasks, setUserTasks] = useState<Task[]>([])
+  const [userTasks, setUserTasks] = useState<ExtendedTask[]>(
+    tasks.map((task) => ({
+      userId: id,
+      title: task.title,
+      status: false,
+      taskId: task.id
+    }))
+  )
   const [error, setError] = useState('')
   const handleDateChange = (date: Date) => {
     setSelectedDate(date)
@@ -90,8 +99,23 @@ const DateSelector = ({ user: { id, tasks } }: DateSelectorProps) => {
       setError('Save Task Failed')
     }
   }
+  const deleteTask = async (task: ExtendedTask) => {
+    try {
+      const response = await axios.delete(
+        `http://127.0.0.1:8000/api/task/delete/${task.taskId}`
+      )
+      if (response) {
+        setUserTasks((prevTasks) =>
+          prevTasks.filter((t) => t.taskId !== task.taskId)
+        )
+      }
+    } catch (error) {
+      console.log('failed')
+      setError('Delete Task Failed')
+    }
+  }
   const handleAddTask = async () => {
-    if (!validateExistingTasks(tasks, newTaskName)) {
+    if (!validateExistingTasks(userTasks, newTaskName)) {
       return
     }
     if (newTaskName) {
@@ -102,7 +126,10 @@ const DateSelector = ({ user: { id, tasks } }: DateSelectorProps) => {
       }
       const response = await saveTask(newTask)
       if (response) {
-        setTasks((prevTasks) => [...prevTasks, newTask])
+        setUserTasks((prevTasks) => [
+          ...prevTasks,
+          { ...newTask, taskId: response.id }
+        ])
         setNewTaskName('')
         setError('')
         setIsAddingTask(false)
@@ -114,7 +141,7 @@ const DateSelector = ({ user: { id, tasks } }: DateSelectorProps) => {
   function range(start: number, end: number) {
     return Array.from({ length: end - start + 1 }, (_, index) => start + index)
   }
-
+  console.log('the updated task is', userTasks)
   return (
     <div className="m-auto">
       <DatePicker
@@ -138,9 +165,16 @@ const DateSelector = ({ user: { id, tasks } }: DateSelectorProps) => {
           </tr>
         </thead>
         <tbody>
-          {tasks.map((task, index) => (
+          {userTasks.map((task, index) => (
             <tr key={index}>
-              <td className="text-white border w-96">{task.title}</td>
+              <td className="text-white border w-96 ">
+                <span>{task.title}</span>
+                <span
+                  className="mx-4 text-red-500 font-bold cursor-pointer"
+                  onClick={() => deleteTask(task)}>
+                  X
+                </span>
+              </td>
               {range(1, period).map((value: number) => (
                 <td className="text-white border p-2" key={value}>
                   <input className="w-20 h-20" type="checkbox"></input>
