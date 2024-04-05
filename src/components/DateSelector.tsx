@@ -24,6 +24,10 @@ type User = {
   email: string
   tasks: UserTask[]
 }
+/* enum STATUS {
+  TODO = 'TODO',
+  INPROGRESS = 'INPROGRESS'
+} */
 type Task = {
   userId: number
   title: string
@@ -141,6 +145,22 @@ const DateSelector = ({ user: { id, tasks } }: DateSelectorProps) => {
   function range(start: number, end: number) {
     return Array.from({ length: end - start + 1 }, (_, index) => start + index)
   }
+  const onTaskStatusChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    task: ExtendedTask,
+    index: number
+  ) => {
+    console.log(task)
+    const updatedTask = { ...task }
+    updatedTask.status = event.target.checked
+
+    // Perform any additional operations here if needed
+
+    // Return the updated task
+    const updatedTasks = [...userTasks]
+    updatedTasks[index] = updatedTask
+    setUserTasks(updatedTasks)
+  }
   console.log('the updated task is', userTasks)
   return (
     <div className="m-auto">
@@ -177,7 +197,14 @@ const DateSelector = ({ user: { id, tasks } }: DateSelectorProps) => {
               </td>
               {range(1, period).map((value: number) => (
                 <td className="text-white border p-2" key={value}>
-                  <input className="w-20 h-20" type="checkbox"></input>
+                  <input
+                    className="w-20 h-20"
+                    type="checkbox"
+                    value={task.status ? 'checked' : ''}
+                    name="taskStatus"
+                    onChange={(event) =>
+                      onTaskStatusChange(event, task, index)
+                    }></input>
                 </td>
               ))}
             </tr>
