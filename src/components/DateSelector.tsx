@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import Button from './common/Button'
@@ -22,7 +22,6 @@ type User = {
   id: number
   username: string
   email: string
-  tasks: UserTask[]
 }
 /* enum STATUS {
   TODO = 'TODO',
@@ -42,18 +41,11 @@ enum Period {
 }
 type ExtendedTask = Task & { taskId: number }
 
-const DateSelector = ({ user: { id, tasks } }: DateSelectorProps) => {
+const DateSelector = ({ user: { id } }: DateSelectorProps) => {
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [newTaskName, setNewTaskName] = useState<string>('')
   const [isAddingTask, setIsAddingTask] = useState(false)
-  const [userTasks, setUserTasks] = useState<ExtendedTask[]>(
-    tasks.map((task) => ({
-      userId: id,
-      title: task.title,
-      status: false,
-      taskId: task.id
-    }))
-  )
+  const [userTasks, setUserTasks] = useState<ExtendedTask[]>()
   const [error, setError] = useState('')
   const handleDateChange = (date: Date) => {
     setSelectedDate(date)
@@ -110,7 +102,7 @@ const DateSelector = ({ user: { id, tasks } }: DateSelectorProps) => {
       )
       if (response) {
         setUserTasks((prevTasks) =>
-          prevTasks.filter((t) => t.taskId !== task.taskId)
+          prevTasks?.filter((t) => t.taskId !== task.taskId)
         )
       }
     } catch (error) {
@@ -162,6 +154,25 @@ const DateSelector = ({ user: { id, tasks } }: DateSelectorProps) => {
     setUserTasks(updatedTasks)
   }
   console.log('the updated task is', userTasks)
+  useEffect(() => {
+    ;async () => {
+      try {
+        const response = await axios.get('http://127.0.0.1:8000/api/tasks')
+        setUserTasks(
+          response.data.map((task: UserTask) => ({
+            userId: id,
+            title: task.title,
+            status: false,
+            taskId: task.id
+          }))
+        )
+        return response.data
+      } catch (error) {
+        setError('Login Failed')
+      }
+    }
+  }, [])
+
   return (
     <div className="m-auto">
       <DatePicker
@@ -185,7 +196,7 @@ const DateSelector = ({ user: { id, tasks } }: DateSelectorProps) => {
           </tr>
         </thead>
         <tbody>
-          {userTasks.map((task, index) => (
+          {userTasks?.map((task, index) => (
             <tr key={index}>
               <td className="text-white border w-96 ">
                 <span>{task.title}</span>

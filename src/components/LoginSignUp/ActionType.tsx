@@ -8,10 +8,10 @@ interface ActionTypeProps {
 
 export const ActionType = ({ action, setAction }: ActionTypeProps) => {
   return (
-    <div className="flex gap-8 mt-12 m-auto">
+    <div className="flex gap-8 mt-12">
       <Button
         className={
-          action == SIGN_UP ? 'bg-[#e8f5fd]' : 'bg-[#EAEAEA] text-[#676767]'
+          action == SIGN_UP ? 'bg-[#acdcf9]' : 'bg-[#EAEAEA] text-[#676767]'
         }
         type="button"
         onClick={() => {
@@ -21,7 +21,7 @@ export const ActionType = ({ action, setAction }: ActionTypeProps) => {
       </Button>
       <Button
         className={
-          action == 'Login' ? 'bg-[#e8f5fd]' : 'bg-[#EAEAEA] text-[#676767]'
+          action == 'Login' ? 'bg-[#acdcf9]' : 'bg-[#EAEAEA] text-[#676767]'
         }
         type="button"
         onClick={() => {

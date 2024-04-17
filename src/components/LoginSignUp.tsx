@@ -95,7 +95,7 @@ const LoginSignUp = () => {
             <span className="text-black cursor-pointer pl-2">Click here!</span>
           </div>
         )}
-        <div className="flex gap-8 mt-12 m-auto">
+        <div className="flex gap-8 mt-12">
           <Button
             className={
               action == 'Sign Up'

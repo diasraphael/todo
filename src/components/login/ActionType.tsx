@@ -6,7 +6,7 @@ interface ActionTypeProps {
 }
 export const ActionType = ({ action, setAction }: ActionTypeProps) => {
   return (
-    <div className="flex gap-8 mt-12 m-auto">
+    <div className="flex gap-8 mt-12">
       <Button
         className={
           action == 'Sign Up' ? 'bg-[#e8f5fd]' : 'bg-[#EAEAEA] text-[#676767]'

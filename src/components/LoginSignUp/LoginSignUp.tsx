@@ -57,7 +57,7 @@ export const LoginSignUp = ({
           altText="Password"></Input>
       </div>
       {action === SIGN_UP && (
-        <div className="pl-28 pt-8 text-[#797979] text-xl">
+        <div className="text-center py-8 text-[#797979] text-xl">
           Forgot Password
           <span className="text-black cursor-pointer pl-2">Click here!</span>
         </div>
