@@ -41,17 +41,17 @@ enum Period {
 }
 type ExtendedTask = Task & { taskId: number }
 
-const DateSelector = ({ user: { id } }: DateSelectorProps) => {
+const DateSelector = ({ user: { id: userId } }: DateSelectorProps) => {
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [newTaskName, setNewTaskName] = useState<string>('')
   const [isAddingTask, setIsAddingTask] = useState(false)
-  const [userTasks, setUserTasks] = useState<ExtendedTask[]>()
+  const [userTasks, setUserTasks] = useState<ExtendedTask[]>([])
   const [error, setError] = useState('')
   const handleDateChange = (date: Date) => {
     setSelectedDate(date)
   }
   const period = Period.week
-  console.log('the date and user', selectedDate, id)
+  console.log('the date and user', selectedDate, userId)
 
   const getDatesForWeek = () => {
     const currentDate = new Date()
@@ -74,7 +74,7 @@ const DateSelector = ({ user: { id } }: DateSelectorProps) => {
   }
   const dataList = getDatesForWeek()
   console.log('data list is', dataList)
-  const validateExistingTasks = (tasks: Task[], taskName: string) => {
+  const validateExistingTasks = (tasks: ExtendedTask[], taskName: string) => {
     const alreadyExistingTask = tasks.find((task) => task.title === taskName)
     if (alreadyExistingTask) {
       setError('This task is already added')
@@ -85,10 +85,13 @@ const DateSelector = ({ user: { id } }: DateSelectorProps) => {
   }
   const saveTask = async (task: Task) => {
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/task', {
-        user_id: task.userId,
-        title: task.title
-      })
+      const response = await axios.post(
+        'http://127.0.0.1:8000/api/tasks/create',
+        {
+          user_id: task.userId,
+          title: task.title
+        }
+      )
       return response.data
     } catch (error) {
       console.log('failed')
@@ -98,7 +101,7 @@ const DateSelector = ({ user: { id } }: DateSelectorProps) => {
   const deleteTask = async (task: ExtendedTask) => {
     try {
       const response = await axios.delete(
-        `http://127.0.0.1:8000/api/task/delete/${task.taskId}`
+        `http://127.0.0.1:8000/api/tasks/delete/${task.taskId}`
       )
       if (response) {
         setUserTasks((prevTasks) =>
@@ -117,7 +120,7 @@ const DateSelector = ({ user: { id } }: DateSelectorProps) => {
     if (newTaskName) {
       const newTask: Task = {
         title: newTaskName,
-        userId: id,
+        userId: userId,
         status: false
       }
       const response = await saveTask(newTask)
@@ -155,12 +158,14 @@ const DateSelector = ({ user: { id } }: DateSelectorProps) => {
   }
   console.log('the updated task is', userTasks)
   useEffect(() => {
-    ;async () => {
+    const fetchTasks = async () => {
       try {
-        const response = await axios.get('http://127.0.0.1:8000/api/tasks')
+        const response = await axios.get(
+          `http://127.0.0.1:8000/api/tasks/${userId}`
+        )
         setUserTasks(
           response.data.map((task: UserTask) => ({
-            userId: id,
+            userId: userId,
             title: task.title,
             status: false,
             taskId: task.id
@@ -171,8 +176,9 @@ const DateSelector = ({ user: { id } }: DateSelectorProps) => {
         setError('Login Failed')
       }
     }
+    fetchTasks()
   }, [])
-
+  console.log('the user tasks are', userTasks)
   return (
     <div className="m-auto">
       <DatePicker
