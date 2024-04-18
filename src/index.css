@@ -8,12 +8,16 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(
+  /* background: linear-gradient(
     178.6deg,
     rgb(232, 245, 253) 3.3%,
     rgb(252, 253, 255) 109.6%
-  );
+  ); */
+  background: #789bed24;
   background-repeat: no-repeat;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }
 
 code {

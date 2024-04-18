@@ -8,11 +8,12 @@ const Dashboard = () => {
   } = useLocation()
   console.log('new user', response)
   return (
-    <div className="flex flex-col mt-12 mx-auto text-center p-8 rounded-md text-3xl">
-      <h2 className="text-white">Welcome {response.username}! </h2>
-      <h3 className="text-base my-8 text-white ">
-        Here you have an overview of your tasks.
-      </h3>
+    <div className="flex flex-col items-center mt-12 mx-auto text-center p-8 rounded-md text-3xl min-h-[100vh]">
+      <h2 className="font-medium">
+        Welcome to the Planner Tool
+        <span className="capitalize"> {response.username}</span>!
+      </h2>
+      <h3 className="text-xl my-8">Here you have an overview of your tasks.</h3>
       <DateSelector user={response}></DateSelector>
     </div>
   )

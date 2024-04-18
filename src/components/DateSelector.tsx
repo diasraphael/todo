@@ -4,8 +4,9 @@ import 'react-datepicker/dist/react-datepicker.css'
 import Button from './common/Button'
 import Input from './common/Input'
 import axios from 'axios'
+import { startOfWeek, addDays, format } from 'date-fns'
 
-const Day: { [key: number]: string } = {
+/* const Day: { [key: number]: string } = {
   0: 'S',
   1: 'M',
   2: 'T',
@@ -13,7 +14,7 @@ const Day: { [key: number]: string } = {
   4: 'T',
   5: 'F',
   6: 'S'
-}
+} */
 type UserTask = {
   title: string
   id: number
@@ -39,7 +40,7 @@ enum Period {
   week = 7,
   month = 30
 }
-type ExtendedTask = Task & { taskId: number }
+type ExtendedTask = Task & { taskId: number; taskDate?: string }
 
 const DateSelector = ({ user: { id: userId } }: DateSelectorProps) => {
   const [selectedDate, setSelectedDate] = useState(new Date())
@@ -55,24 +56,26 @@ const DateSelector = ({ user: { id: userId } }: DateSelectorProps) => {
 
   const getDatesForWeek = () => {
     const currentDate = new Date()
-    const currentDay = currentDate.getDay() // 0 for Sunday, 1 for Monday, etc.
-    const startOfWeek = new Date(currentDate)
-    startOfWeek.setDate(startOfWeek.getDate() - currentDay) // Adjust to Monday of the current week
+    //const currentDay = currentDate.getDay() // 0 for Sunday, 1 for Monday, etc.
+    const startOfCurrentWeek = startOfWeek(currentDate)
 
     const dates = []
 
     for (let i = 0; i < period; i++) {
-      const date = new Date(startOfWeek)
-      date.setDate(date.getDate() + i)
+      const date = addDays(startOfCurrentWeek, i)
+      console.log('date value', date, date.toISOString())
       dates.push({
-        date: date.getDate(),
-        day: Day[date.getDay()] // 0 for Sunday, 1 for Monday, etc.
+        taskDate: date.toISOString(),
+        date: format(date, 'd'), // Get the day of the month
+        day: format(date, 'EEEE').charAt(0) // Get the full name of the day (e.g., Monday)
       })
     }
 
     return dates
   }
+
   const dataList = getDatesForWeek()
+
   console.log('data list is', dataList)
   const validateExistingTasks = (tasks: ExtendedTask[], taskName: string) => {
     const alreadyExistingTask = tasks.find((task) => task.title === taskName)
@@ -137,18 +140,24 @@ const DateSelector = ({ user: { id: userId } }: DateSelectorProps) => {
       setError('Enter a value')
     }
   }
-  function range(start: number, end: number) {
+  /*  function range(start: number, end: number) {
     return Array.from({ length: end - start + 1 }, (_, index) => start + index)
-  }
+  } */
   const onTaskStatusChange = (
     event: React.ChangeEvent<HTMLInputElement>,
     task: ExtendedTask,
-    index: number
+    index: number,
+    item: {
+      taskDate: string
+      date: string
+      day: string
+    }
   ) => {
-    console.log(task)
+    // console.log(task)
     const updatedTask = { ...task }
     updatedTask.status = event.target.checked
-
+    updatedTask.taskDate = item.taskDate
+    console.log('the updated task is', updatedTask, item)
     // Perform any additional operations here if needed
 
     // Return the updated task
@@ -156,7 +165,7 @@ const DateSelector = ({ user: { id: userId } }: DateSelectorProps) => {
     updatedTasks[index] = updatedTask
     setUserTasks(updatedTasks)
   }
-  console.log('the updated task is', userTasks)
+  //console.log('the updated task is', userTasks)
   useEffect(() => {
     const fetchTasks = async () => {
       try {
@@ -167,7 +176,7 @@ const DateSelector = ({ user: { id: userId } }: DateSelectorProps) => {
           response.data.map((task: UserTask) => ({
             userId: userId,
             title: task.title,
-            status: false,
+            status: undefined,
             taskId: task.id
           }))
         )
@@ -180,21 +189,21 @@ const DateSelector = ({ user: { id: userId } }: DateSelectorProps) => {
   }, [])
   console.log('the user tasks are', userTasks)
   return (
-    <div className="m-auto">
+    <div className="">
       <DatePicker
         selected={selectedDate}
         onChange={handleDateChange}
         dateFormat="MM/yyyy"
         showMonthYearPicker
       />
-      <table className="my-8">
-        <thead className="m-4 border bg-black text-white">
+      <table className="my-8 bg-[#789bed24]">
+        <thead className="m-4 border">
           <tr>
-            <th className="bg-black text-white p-2 w-96">Tasks</th>
+            <th className="p-2 w-96 border-4 border-white">Tasks</th>
             {dataList.map((day, index) => (
-              <th key={index} className="border">
+              <th key={index} className="border-4 border-white">
                 <div className="flex flex-col p-2">
-                  <div className="bg-black text-white p-2">{day.day}</div>
+                  <div className="p-2">{day.day}</div>
                   <div className="p-2">{day.date}</div>
                 </div>
               </th>
@@ -203,8 +212,8 @@ const DateSelector = ({ user: { id: userId } }: DateSelectorProps) => {
         </thead>
         <tbody>
           {userTasks?.map((task, index) => (
-            <tr key={index}>
-              <td className="text-white border w-96 ">
+            <tr key={index} className="border-white border-4 ">
+              <td className="border-4 w-96 border-white">
                 <span>{task.title}</span>
                 <span
                   className="mx-4 text-red-500 font-bold cursor-pointer"
@@ -212,15 +221,15 @@ const DateSelector = ({ user: { id: userId } }: DateSelectorProps) => {
                   X
                 </span>
               </td>
-              {range(1, period).map((value: number) => (
-                <td className="text-white border p-2" key={value}>
+              {dataList.map((item, index) => (
+                <td className="border-4 p-2 border-white" key={index}>
                   <input
                     className="w-20 h-20"
                     type="checkbox"
                     value={task.status ? 'checked' : ''}
                     name="taskStatus"
                     onChange={(event) =>
-                      onTaskStatusChange(event, task, index)
+                      onTaskStatusChange(event, task, index, item)
                     }></input>
                 </td>
               ))}
@@ -229,7 +238,7 @@ const DateSelector = ({ user: { id: userId } }: DateSelectorProps) => {
           <tr className="">
             {isAddingTask ? (
               <>
-                <td className="border p-2">
+                <td className="border-4 border-white p-2">
                   <Input
                     img="/assets/username.png"
                     altText="Add Task"
@@ -241,8 +250,8 @@ const DateSelector = ({ user: { id: userId } }: DateSelectorProps) => {
                     onChange={(e) => setNewTaskName(e.target.value)}
                   />
                 </td>
-                {range(1, period).map((value: number) => (
-                  <td className="text-white border p-2" key={value}>
+                {dataList.map((item, index) => (
+                  <td className="border-4 border-white p-2" key={index}>
                     <input className="w-20 h-20" type="checkbox"></input>
                   </td>
                 ))}
@@ -256,28 +265,52 @@ const DateSelector = ({ user: { id: userId } }: DateSelectorProps) => {
       <div className="flex">
         {isAddingTask ? (
           <Button
-            className="bg-[#e8f5fd]"
+            className="bg-[#789bed69] "
             type="button"
             onClick={handleAddTask}>
             Save Task
           </Button>
         ) : (
           <Button
-            className="bg-[#e8f5fd] mr-4"
+            className="bg-[#789bed69] mr-4"
             type="button"
             onClick={() => setIsAddingTask(true)}>
             Add Task
           </Button>
         )}
       </div>
-      <div className="text-white">{error}</div>
+      <div className="">{error}</div>
     </div>
   )
 }
 
 export default DateSelector
 
-/*   const getDatesForMonth = () => {
+/* 
+
+const getDatesForWeek = () => {
+    const currentDate = new Date()
+    const currentDay = currentDate.getDay() // 0 for Sunday, 1 for Monday, etc.
+    const startOfWeek = new Date(currentDate)
+    startOfWeek.setDate(startOfWeek.getDate() - currentDay) // Adjust to Monday of the current week
+
+    const dates = []
+
+    for (let i = 0; i < period; i++) {
+      const date = new Date(startOfWeek)
+      date.setDate(date.getDate() + i)
+      dates.push({
+        taskDate: date,
+        date: date.getDate(),
+        day: Day[date.getDay()] // 0 for Sunday, 1 for Monday, etc.
+      })
+    }
+
+    return dates
+  }
+  const dataList = getDatesForWeek()
+
+const getDatesForMonth = () => {
     const year = selectedDate.getFullYear()
     const month = selectedDate.getMonth()
     const numDays = new Date(year, month + 1, 0).getDate()

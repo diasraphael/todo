@@ -63,7 +63,7 @@ export const LoginSignUpWrapper = () => {
 
             <div className="flex gap-8 my-8">
               <Button
-                className={'bg-[#acdcf9] text-[#676767]'}
+                className={'bg-[#789bed69] text-[#676767]'}
                 type="submit"
                 onClick={async (event: React.MouseEvent<HTMLButtonElement>) => {
                   event.preventDefault()
