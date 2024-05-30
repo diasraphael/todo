@@ -35,6 +35,7 @@ type Task = {
 }
 interface DateSelectorProps {
   user: User
+  token: { access_token: string; token_type: string }
 }
 enum Period {
   week = 7,
@@ -42,7 +43,7 @@ enum Period {
 }
 type ExtendedTask = Task & { taskId: number; taskDate?: string }
 
-const DateSelector = ({ user: { id: userId } }: DateSelectorProps) => {
+const DateSelector = ({ user, token }: DateSelectorProps) => {
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [newTaskName, setNewTaskName] = useState<string>('')
   const [isAddingTask, setIsAddingTask] = useState(false)
@@ -52,7 +53,8 @@ const DateSelector = ({ user: { id: userId } }: DateSelectorProps) => {
     setSelectedDate(date)
   }
   const period = Period.week
-  console.log('the date and user', selectedDate, userId)
+  console.log('the date and user', selectedDate, user.id, token)
+  localStorage.setItem('token', token.access_token)
 
   const getDatesForWeek = () => {
     const currentDate = new Date()
@@ -86,25 +88,35 @@ const DateSelector = ({ user: { id: userId } }: DateSelectorProps) => {
       return true
     }
   }
-  const saveTask = async (task: Task) => {
+  const createTask = async ({ userId, title }: Task) => {
     try {
       const response = await axios.post(
-        'http://127.0.0.1:8000/api/tasks/create',
+        'http://127.0.0.1:8000/api/tasks/',
         {
-          user_id: task.userId,
-          title: task.title
+          userId,
+          title
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
         }
       )
       return response.data
     } catch (error) {
       console.log('failed')
-      setError('Save Task Failed')
+      setError('Create Task Failed')
     }
   }
   const deleteTask = async (task: ExtendedTask) => {
     try {
       const response = await axios.delete(
-        `http://127.0.0.1:8000/api/tasks/delete/${task.taskId}`
+        `http://127.0.0.1:8000/api/tasks/${task.taskId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        }
       )
       if (response) {
         setUserTasks((prevTasks) =>
@@ -123,10 +135,10 @@ const DateSelector = ({ user: { id: userId } }: DateSelectorProps) => {
     if (newTaskName) {
       const newTask: Task = {
         title: newTaskName,
-        userId: userId,
+        userId: user.id,
         status: false
       }
-      const response = await saveTask(newTask)
+      const response = await createTask(newTask)
       if (response) {
         setUserTasks((prevTasks) => [
           ...prevTasks,
@@ -140,10 +152,25 @@ const DateSelector = ({ user: { id: userId } }: DateSelectorProps) => {
       setError('Enter a value')
     }
   }
-  /*  function range(start: number, end: number) {
-    return Array.from({ length: end - start + 1 }, (_, index) => start + index)
-  } */
-  const onTaskStatusChange = (
+
+  const createTaskEntry = async (task: ExtendedTask) => {
+    try {
+      const response = await axios.post(
+        `http://127.0.0.1:8000/api/task-entry/create/`,
+        task,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      )
+      return response.data
+    } catch (error) {
+      console.log('failed')
+      setError('Create Task entry Failed')
+    }
+  }
+  const onTaskStatusChange = async (
     event: React.ChangeEvent<HTMLInputElement>,
     task: ExtendedTask,
     index: number,
@@ -153,28 +180,37 @@ const DateSelector = ({ user: { id: userId } }: DateSelectorProps) => {
       day: string
     }
   ) => {
-    // console.log(task)
     const updatedTask = { ...task }
     updatedTask.status = event.target.checked
     updatedTask.taskDate = item.taskDate
-    console.log('the updated task is', updatedTask, item)
-    // Perform any additional operations here if needed
-
-    // Return the updated task
-    const updatedTasks = [...userTasks]
-    updatedTasks[index] = updatedTask
-    setUserTasks(updatedTasks)
+    updatedTask.taskId = task.taskId
+    try {
+      await createTaskEntry(updatedTask)
+    } catch (error) {
+      console.log('failed')
+      setError('Update Task entry Failed')
+    }
+    /* if (response) {
+      const updatedTasks = userTasks.map((task) =>
+        task.taskId === task.taskId && task.taskDate === task.taskDate
+          ? updatedTask
+          : task
+      )
+      setUserTasks(updatedTasks)
+    } */
   }
-  //console.log('the updated task is', userTasks)
+  console.log('the updated usertasks is', userTasks)
   useEffect(() => {
     const fetchTasks = async () => {
       try {
-        const response = await axios.get(
-          `http://127.0.0.1:8000/api/tasks/${userId}`
-        )
+        const response = await axios.get(`http://127.0.0.1:8000/api/tasks`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        })
         setUserTasks(
           response.data.map((task: UserTask) => ({
-            userId: userId,
+            userId: user.id,
             title: task.title,
             status: undefined,
             taskId: task.id
@@ -187,7 +223,7 @@ const DateSelector = ({ user: { id: userId } }: DateSelectorProps) => {
     }
     fetchTasks()
   }, [])
-  console.log('the user tasks are', userTasks)
+  console.log('the user tasks are', userTasks, dataList)
   return (
     <div className="">
       <DatePicker
@@ -285,43 +321,3 @@ const DateSelector = ({ user: { id: userId } }: DateSelectorProps) => {
 }
 
 export default DateSelector
-
-/* 
-
-const getDatesForWeek = () => {
-    const currentDate = new Date()
-    const currentDay = currentDate.getDay() // 0 for Sunday, 1 for Monday, etc.
-    const startOfWeek = new Date(currentDate)
-    startOfWeek.setDate(startOfWeek.getDate() - currentDay) // Adjust to Monday of the current week
-
-    const dates = []
-
-    for (let i = 0; i < period; i++) {
-      const date = new Date(startOfWeek)
-      date.setDate(date.getDate() + i)
-      dates.push({
-        taskDate: date,
-        date: date.getDate(),
-        day: Day[date.getDay()] // 0 for Sunday, 1 for Monday, etc.
-      })
-    }
-
-    return dates
-  }
-  const dataList = getDatesForWeek()
-
-const getDatesForMonth = () => {
-    const year = selectedDate.getFullYear()
-    const month = selectedDate.getMonth()
-    const numDays = new Date(year, month + 1, 0).getDate()
-    const dates = []
-
-    for (let i = 1; i <= numDays; i++) {
-      dates.push({
-        date: i,
-        day: Day[new Date(year, month, i).getDay()] // 0 for Sunday, 1 for Monday, etc.
-      })
-    }
-
-    return dates
-  } */
