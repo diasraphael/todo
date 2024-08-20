@@ -30,3 +30,4 @@ export const ActionType = ({ action, setAction }: ActionTypeProps) => {
     </div>
   )
 }
+

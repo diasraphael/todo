@@ -14,7 +14,7 @@ const Dashboard = () => {
         <span className="capitalize"> {response.user.username}</span>!
       </h2>
       <h3 className="text-xl my-8">Here you have an overview of your tasks.</h3>
-      <DateSelector user={response.user} token={response.token}></DateSelector>
+      <DateSelector user={response.user}></DateSelector>
     </div>
   )
 }

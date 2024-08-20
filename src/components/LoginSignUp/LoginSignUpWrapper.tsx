@@ -4,10 +4,10 @@ import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import { LoginSignUp, User } from './LoginSignUp'
 import { ActionType } from './ActionType'
-
 export const LoginSignUpWrapper = () => {
   const [action, setAction] = useState('')
   const navigate = useNavigate()
+
   const [formData, setFormData] = useState<User>({
     username: '',
     email: '',
@@ -27,19 +27,25 @@ export const LoginSignUpWrapper = () => {
       )
       return response.data
     } catch (error) {
+      console.log(error)
       setError('Add User Failed')
     }
   }
 
   const loginUser = async () => {
     try {
-      const response = await axios.post(
-        'http://127.0.0.1:8000/api/user/login',
-        {
+      const response = await axios({
+        method: 'post',
+        url: 'http://localhost:8000/api/user/login',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        withCredentials: true,
+        data: {
           email: formData.email,
           password: formData.password
         }
-      )
+      })
       return response.data
     } catch (error) {
       setError('Login Failed')

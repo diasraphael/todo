@@ -4,6 +4,7 @@ import Button from './common/Button'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
 import { ActionType } from './login/ActionType'
+axios.defaults.withCredentials = true
 
 const LoginSignUp = () => {
   const [action, setAction] = useState('')
@@ -34,9 +35,15 @@ const LoginSignUp = () => {
 
   const loginUser = async () => {
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/login', {
-        email: formData.email,
-        password: formData.password
+      const response = await axios({
+        url: 'http://localhost:8000/api/login',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        data: {
+          email: formData.email,
+          password: formData.password
+        }
       })
       return response.data
     } catch (error) {

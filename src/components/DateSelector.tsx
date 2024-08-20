@@ -5,6 +5,7 @@ import Button from './common/Button'
 import Input from './common/Input'
 import axios from 'axios'
 import { startOfWeek, addDays, format } from 'date-fns'
+import { parseISO, isSameDay } from 'date-fns'
 
 /* const Day: { [key: number]: string } = {
   0: 'S',
@@ -35,26 +36,24 @@ type Task = {
 }
 interface DateSelectorProps {
   user: User
-  token: { access_token: string; token_type: string }
 }
 enum Period {
   week = 7,
   month = 30
 }
-type ExtendedTask = Task & { taskId: number; taskDate?: string }
+type ExtendedTask = Task & { taskId: number; taskDate: string }
 
-const DateSelector = ({ user, token }: DateSelectorProps) => {
+const DateSelector = ({ user }: DateSelectorProps) => {
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [newTaskName, setNewTaskName] = useState<string>('')
   const [isAddingTask, setIsAddingTask] = useState(false)
   const [userTasks, setUserTasks] = useState<ExtendedTask[]>([])
+  const [taskEntries, setTaskEntries] = useState<ExtendedTask[]>([])
   const [error, setError] = useState('')
   const handleDateChange = (date: Date) => {
     setSelectedDate(date)
   }
   const period = Period.week
-  console.log('the date and user', selectedDate, user.id, token)
-  localStorage.setItem('token', token.access_token)
 
   const getDatesForWeek = () => {
     const currentDate = new Date()
@@ -76,6 +75,20 @@ const DateSelector = ({ user, token }: DateSelectorProps) => {
     return dates
   }
 
+  const checkStatus = (date: string) => {
+    console.log('the task entries are', taskEntries, date)
+    taskEntries.forEach((task) => {
+      if (isSameDay(parseISO(task.taskDate), parseISO(date))) {
+        console.log(
+          'the task status is',
+          isSameDay(parseISO(task.taskDate), parseISO(date))
+        )
+        return task.status
+      }
+    })
+    return false
+  }
+
   const dataList = getDatesForWeek()
 
   console.log('data list is', dataList)
@@ -90,18 +103,18 @@ const DateSelector = ({ user, token }: DateSelectorProps) => {
   }
   const createTask = async ({ userId, title }: Task) => {
     try {
-      const response = await axios.post(
-        'http://127.0.0.1:8000/api/tasks/',
-        {
+      const response = await axios({
+        method: 'post',
+        url: 'http://localhost:8000/api/tasks/',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        withCredentials: true,
+        data: {
           userId,
           title
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
         }
-      )
+      })
       return response.data
     } catch (error) {
       console.log('failed')
@@ -110,14 +123,14 @@ const DateSelector = ({ user, token }: DateSelectorProps) => {
   }
   const deleteTask = async (task: ExtendedTask) => {
     try {
-      const response = await axios.delete(
-        `http://127.0.0.1:8000/api/tasks/${task.taskId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
-        }
-      )
+      const response = await axios({
+        method: 'delete',
+        url: `http://localhost:8000/api/tasks/${task.taskId}`,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        withCredentials: true
+      })
       if (response) {
         setUserTasks((prevTasks) =>
           prevTasks?.filter((t) => t.taskId !== task.taskId)
@@ -142,7 +155,7 @@ const DateSelector = ({ user, token }: DateSelectorProps) => {
       if (response) {
         setUserTasks((prevTasks) => [
           ...prevTasks,
-          { ...newTask, taskId: response.id }
+          { ...newTask, taskId: response.id, taskDate: '' }
         ])
         setNewTaskName('')
         setError('')
@@ -155,15 +168,15 @@ const DateSelector = ({ user, token }: DateSelectorProps) => {
 
   const createTaskEntry = async (task: ExtendedTask) => {
     try {
-      const response = await axios.post(
-        `http://127.0.0.1:8000/api/task-entry/create/`,
-        task,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
-        }
-      )
+      const response = await axios({
+        url: `http://localhost:8000/api/task-entry/`,
+        method: 'post',
+        data: task,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        withCredentials: true
+      })
       return response.data
     } catch (error) {
       console.log('failed')
@@ -203,10 +216,13 @@ const DateSelector = ({ user, token }: DateSelectorProps) => {
   useEffect(() => {
     const fetchTasks = async () => {
       try {
-        const response = await axios.get(`http://127.0.0.1:8000/api/tasks`, {
+        const response = await axios({
+          method: 'get',
+          url: `http://localhost:8000/api/tasks`,
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
+            'Content-Type': 'application/json'
+          },
+          withCredentials: true
         })
         setUserTasks(
           response.data.map((task: UserTask) => ({
@@ -221,7 +237,25 @@ const DateSelector = ({ user, token }: DateSelectorProps) => {
         setError('Login Failed')
       }
     }
+    const fetchTaskEntries = async () => {
+      try {
+        const response = await axios({
+          method: 'get',
+          url: `http://localhost:8000/api/task-entry`,
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          withCredentials: true
+        })
+        console.log('the task entries are', response.data)
+        setTaskEntries(response.data)
+        return response.data
+      } catch (error) {
+        setError('Login Failed')
+      }
+    }
     fetchTasks()
+    fetchTaskEntries()
   }, [])
   console.log('the user tasks are', userTasks, dataList)
   return (
@@ -262,7 +296,7 @@ const DateSelector = ({ user, token }: DateSelectorProps) => {
                   <input
                     className="w-20 h-20"
                     type="checkbox"
-                    value={task.status ? 'checked' : ''}
+                    value={checkStatus(item.taskDate) ? 'checked' : ''}
                     name="taskStatus"
                     onChange={(event) =>
                       onTaskStatusChange(event, task, index, item)
