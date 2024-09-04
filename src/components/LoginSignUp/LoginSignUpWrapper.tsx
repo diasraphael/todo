@@ -18,7 +18,7 @@ export const LoginSignUpWrapper = () => {
   const addNewUser = async () => {
     try {
       const response = await axios.post(
-        'http://127.0.0.1:8000/api/user/create',
+        `${process.env.REACT_APP_API_URL}/api/user/create`,
         {
           email: formData.email,
           password: formData.password,
@@ -36,7 +36,7 @@ export const LoginSignUpWrapper = () => {
     try {
       const response = await axios({
         method: 'post',
-        url: 'http://localhost:8000/api/user/login',
+        url: `${process.env.REACT_APP_API_URL}/api/user/login`,
         headers: {
           'Content-Type': 'application/json'
         },

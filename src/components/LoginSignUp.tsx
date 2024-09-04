@@ -22,11 +22,14 @@ const LoginSignUp = () => {
 
   const addNewUser = async () => {
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/user', {
-        email: formData.email,
-        password: formData.password,
-        username: formData.username
-      })
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_URL}/api/user`,
+        {
+          email: formData.email,
+          password: formData.password,
+          username: formData.username
+        }
+      )
       return response.data
     } catch (error) {
       setError('Add User Failed')
@@ -36,7 +39,7 @@ const LoginSignUp = () => {
   const loginUser = async () => {
     try {
       const response = await axios({
-        url: 'http://localhost:8000/api/login',
+        url: `${process.env.REACT_APP_API_URL}/api/login`,
         headers: {
           'Content-Type': 'application/json'
         },

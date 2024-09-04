@@ -105,7 +105,7 @@ const DateSelector = ({ user }: DateSelectorProps) => {
     try {
       const response = await axios({
         method: 'post',
-        url: 'http://localhost:8000/api/tasks/',
+        url: `${process.env.REACT_APP_API_URL}/api/tasks`,
         headers: {
           'Content-Type': 'application/json'
         },
@@ -125,7 +125,7 @@ const DateSelector = ({ user }: DateSelectorProps) => {
     try {
       const response = await axios({
         method: 'delete',
-        url: `http://localhost:8000/api/tasks/${task.taskId}`,
+        url: `${process.env.REACT_APP_API_URL}/api/tasks/${task.taskId}`,
         headers: {
           'Content-Type': 'application/json'
         },
@@ -169,7 +169,7 @@ const DateSelector = ({ user }: DateSelectorProps) => {
   const createTaskEntry = async (task: ExtendedTask) => {
     try {
       const response = await axios({
-        url: `http://localhost:8000/api/task-entry/`,
+        url: `${process.env.REACT_APP_API_URL}/api/task-entry`,
         method: 'post',
         data: task,
         headers: {
@@ -218,7 +218,7 @@ const DateSelector = ({ user }: DateSelectorProps) => {
       try {
         const response = await axios({
           method: 'get',
-          url: `http://localhost:8000/api/tasks`,
+          url: `${process.env.REACT_APP_API_URL}/api/tasks`,
           headers: {
             'Content-Type': 'application/json'
           },
@@ -241,7 +241,7 @@ const DateSelector = ({ user }: DateSelectorProps) => {
       try {
         const response = await axios({
           method: 'get',
-          url: `http://localhost:8000/api/task-entry`,
+          url: `${process.env.REACT_APP_API_URL}/api/task-entry`,
           headers: {
             'Content-Type': 'application/json'
           },
