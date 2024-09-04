@@ -25,5 +25,5 @@ Adding the corresponding url in the backend:
 origins = [
 "http://localhost:3001",
 "http://127.0.0.1:3001",
-"https://todo-r6t7nm7wn-dias-projects-b6aded80.vercel.app",
+"http://todo-r6t7nm7wn-dias-projects-b6aded80.vercel.app",
 ]
